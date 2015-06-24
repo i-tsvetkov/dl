@@ -6,5 +6,6 @@ do
   if [ $? -eq 0 ]; then
     break
   fi
+  sleep 1
 done
 
