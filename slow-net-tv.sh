@@ -83,7 +83,7 @@ main()
   while :
   do
     go_tv
-    log 'The video stream stopped!'
+    log "($?) The video stream stopped!"
     ping -c4 8.8.8.8 &> /dev/null && log 'Net up.' || log 'Net down!'
     wait_tv
   done
