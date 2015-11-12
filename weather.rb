@@ -1,13 +1,34 @@
-require 'net/http'
+require 'open-uri'
 require 'json'
 
-appid = 'bd82977b86bf27fb59a04b61b657fb6f'
+def get_appid(fetch = false)
+  appid_file = '.appid'
+  if fetch
+    appid = open('http://openweathermap.org/').read.match(/appid=(\h+)/)[1]
+    File.write(appid_file, appid)
+    return appid
+  else
+    if File.exist?(appid_file)
+      return File.read(appid_file)
+    else
+      get_appid(true)
+    end
+  end
+end
 
-url = "http://api.openweathermap.org/data/2.5/weather?q=#{ARGV[0]}&units=metric&lang=bg&appid=#{appid}"
-
-data = Net::HTTP.get_response(URI(url))
-h = JSON.parse(data.body)
-r = h['weather'][0]['description'] + "\s" + h['main']['temp'].round.to_s + "\sC"
-
-puts r
+try_once = true
+begin
+  url = "http://api.openweathermap.org/data/2.5/weather?q=#{ARGV[0]}&units=metric&lang=bg&appid=#{get_appid}"
+  h = JSON.parse(open(url).read)
+  r = h['weather'][0]['description'] + "\s" + h['main']['temp'].round.to_s + "\sC"
+  puts r
+rescue Exception => e
+  get_appid(true)
+  if try_once
+    try_once = false
+    retry
+  else
+    puts e.to_s
+  end
+end
 
