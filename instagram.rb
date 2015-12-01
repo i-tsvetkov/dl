@@ -13,3 +13,14 @@ def get_photos(username)
   return photos
 end
 
+def get_sharedData(username)
+  JSON.parse(open("https://www.instagram.com/#{username}/")
+             .read[/<script type="text\/javascript">window._sharedData = (.*?);<\/script>/, 1])
+end
+
+def get_profile_pic(username)
+  open("https://www.instagram.com/#{username}/")
+  .read[/<meta property="og:image" content="(.*?)" \/>/, 1]
+  .sub('/s150x150', '')
+end
+
