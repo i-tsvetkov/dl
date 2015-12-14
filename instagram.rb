@@ -24,3 +24,16 @@ def get_profile_pic(username)
   .sub('/s150x150', '')
 end
 
+def get_media(username)
+  url = "https://instagram.com/#{username}/media/"
+  medias = []
+  loop do
+    json = JSON.parse(open(url).read)
+    medias.push json
+    break if json['items'].empty?
+    url = "https://instagram.com/#{username}/media/?max_id=#{json['items'].last['id']}"
+    break unless json['more_available']
+  end
+  return JSON.fast_generate(medias)
+end
+
