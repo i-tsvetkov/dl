@@ -62,7 +62,10 @@ class Igrm
   SLEEP_RANGE = 1..1
 
   def get_sleep
-    sleep(rand(SLEEP_RANGE) * 60 / @users.size)
+    col = ENV['COLUMNS'].to_i
+    time = rand(SLEEP_RANGE).to_f * 60 / @users.size / col
+    col.times { print('.'); sleep(time) }
+    printf("\r%*s\r", col, '')
   end
 
   def notify(value, picture = false)
