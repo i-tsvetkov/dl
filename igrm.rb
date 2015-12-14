@@ -6,7 +6,7 @@ require 'json'
 require './instagram.rb'
 
 class Igrm
-  def initialize(database_name)
+  def initialize(database_name, config = 'config.yaml')
     unless File.exist?(database_name)
       @db = SQLite3::Database.new(database_name)
       @db.execute(['CREATE TABLE media(',
@@ -26,9 +26,9 @@ class Igrm
                    'time    INTEGER NOT NULL)'].join("\n\t"))
     end
     @db ||= SQLite3::Database.new(database_name)
-    @users = YAML.load(File.read('config.yaml'))['users']
-    @data_ids    = @db.execute('SELECT id FROM data').flatten(1)
-    @media_ids   = @db.execute('SELECT id FROM media').flatten(1)
+    @users = YAML.load(File.read(config))['users']
+    @data_ids     = @db.execute('SELECT id FROM data').flatten(1)
+    @media_ids    = @db.execute('SELECT id FROM media').flatten(1)
     @pictures_ids = @db.execute('SELECT id FROM pictures').flatten(1)
   end
 
