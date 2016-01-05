@@ -70,7 +70,7 @@ wait_tv()
   do
     expr $i \* 10 / 6
     sleep 1
-  done | zenity --progress --auto-close --auto-kill &> /dev/null
+  done | zenity --progress --auto-close &> /dev/null
 }
 
 log()
@@ -80,12 +80,18 @@ log()
 
 main()
 {
+  lockfile-check .tv
+  [[ $? -ne 0 ]] && lockfile-create .tv
   while :
   do
     go_tv
     log "($?) The video stream stopped!"
     ping -c4 8.8.8.8 &> /dev/null && log 'Net up.' || log 'Net down!'
     wait_tv
+    if [ $? -ne 0 ]; then
+      lockfile-remove .tv
+      exit
+    fi
   done
 }
 
