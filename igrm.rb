@@ -26,11 +26,15 @@ class Igrm
                    'data    TEXT    NOT NULL,',
                    'time    INTEGER NOT NULL)'].join("\n\t"))
     end
+
     @db ||= SQLite3::Database.new(database_name)
     @users = YAML.load(File.read(config))['users']
     @data_ids     = @db.execute('SELECT id FROM data').flatten(1)
     @media_ids    = @db.execute('SELECT id FROM media').flatten(1)
     @pictures_ids = @db.execute('SELECT id FROM pictures').flatten(1)
+
+    system('mkdir -p pics')
+    system('mkdir -p profile_pic')
   end
 
   def start
@@ -82,10 +86,11 @@ class Igrm
     case table
     when :pictures
       puts "#{@current_user}:\s#{value}"
-      system("wget -qP pics '#{value}'")
-      system('mkdir -p profile_pic')
+      timestamp = Time.now.to_i
+      filename  = "#{timestamp}_#{value.split('/').last}"
+      system("wget -q -O 'pics/#{filename}' '#{value}'")
       system("curl -s '#{value}' > 'profile_pic/#{@current_user}.jpg'")
-      system("notify-send -i '#{Dir.pwd}/pics/#{value.split('/').last}' '#{@current_user}' '#{value}'")
+      system("notify-send -i '#{Dir.pwd}/pics/#{filename}' '#{@current_user}' '#{value}'")
     when :data
       new, old = @db.execute(["SELECT data FROM data",
                               "WHERE user = '#{@current_user}'",
