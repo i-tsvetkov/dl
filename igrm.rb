@@ -69,6 +69,11 @@ class Igrm
     printf("\r%*s\r", col, '')
   end
 
+  def normal_notify(value)
+    puts "#{@current_user}:\s#{value[0 .. 80]}..."
+    system("notify-send '#{@current_user}' '#{value}'")
+  end
+
   def notify(value, table)
     case table
     when :pictures
@@ -76,22 +81,21 @@ class Igrm
       system("wget -qP pics '#{value}'")
       system("notify-send -i '#{Dir.pwd}/pics/#{value.split('/').last}' '#{@current_user}' '#{value}'")
     when :data
-      new, old = @db.execute(["SELECT data FROM #{table}",
+      new, old = @db.execute(["SELECT data FROM data",
                               "WHERE user = '#{@current_user}'",
                               "ORDER BY time DESC",
                               "LIMIT 2"].join("\n\t")).flatten
       if old.nil?
-        puts "#{@current_user}:\s#{value[0 .. 80]}..."
-        system("notify-send '#{@current_user}' '#{value}'")
+        normal_notify(value)
       else
-        diff = json_diff(JSON.parse(new), JSON.parse(old)).map { |it|
-          "#{it[:type]}#{it[:path]}:\s#{[it[:value]].flatten.join("\s->\s")}" }
-        puts "#{@current_user}:\n\t#{diff.join("\n\t")}"
+        diff = json_diff(JSON.parse(new), JSON.parse(old)).map do |it|
+          "#{it[:type]}#{it[:path]}:\s#{[it[:value]].flatten.reverse.join("\s->\s")}"
+        end
+        puts (["#{@current_user}:"] + diff).join("\n\t")
         system("notify-send '#{@current_user}' '#{diff.join("\n")}'")
       end
     else
-      puts "#{@current_user}:\s#{value[0 .. 80]}..."
-      system("notify-send '#{@current_user}' '#{value}'")
+      normal_notify(value)
     end
   end
 
