@@ -4,6 +4,7 @@ require 'sqlite3'
 require 'yaml'
 require 'json'
 require './instagram.rb'
+require_relative 'json-diff.rb'
 
 class Igrm
   def initialize(database_name, config = 'config.yaml')
@@ -68,11 +69,26 @@ class Igrm
     printf("\r%*s\r", col, '')
   end
 
-  def notify(value, picture = false)
-    if picture
+  def notify(value, table)
+    case table
+    when :pictures
       puts "#{@current_user}:\s#{value}"
       system("wget -qP pics '#{value}'")
       system("notify-send -i '#{Dir.pwd}/pics/#{value.split('/').last}' '#{@current_user}' '#{value}'")
+    when :data
+      new, old = @db.execute(["SELECT data FROM #{table}",
+                              "WHERE user = '#{@current_user}'",
+                              "ORDER BY time DESC",
+                              "LIMIT 2"].join("\n\t")).flatten
+      if old.nil?
+        puts "#{@current_user}:\s#{value[0 .. 80]}..."
+        system("notify-send '#{@current_user}' '#{value}'")
+      else
+        diff = json_diff(JSON.parse(new), JSON.parse(old)).map { |it|
+          "#{it[:type]}#{it[:path]}:\s#{[it[:value]].flatten.join("\s->\s")}" }
+        puts "#{@current_user}:\n\t#{diff.join("\n\t")}"
+        system("notify-send '#{@current_user}' '#{diff.join("\n")}'")
+      end
     else
       puts "#{@current_user}:\s#{value[0 .. 80]}..."
       system("notify-send '#{@current_user}' '#{value}'")
@@ -90,7 +106,7 @@ class Igrm
 
     eval "@#{table}_ids.push id"
 
-    notify(value, table == :pictures)
+    notify(value, table)
   end
 end
 
