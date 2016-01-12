@@ -69,9 +69,13 @@ class Igrm
     printf("\r%*s\r", col, '')
   end
 
+  def get_user_pic(user)
+    "#{Dir.pwd}/profile_pic/#{user}.jpg"
+  end
+
   def normal_notify(value)
     puts "#{@current_user}:\s#{value[0 .. 80]}..."
-    system("notify-send '#{@current_user}' '#{value}'")
+    system("notify-send -i '#{get_user_pic(@current_user)}' '#{@current_user}' '#{value}'")
   end
 
   def notify(value, table)
@@ -79,6 +83,8 @@ class Igrm
     when :pictures
       puts "#{@current_user}:\s#{value}"
       system("wget -qP pics '#{value}'")
+      system('mkdir -p profile_pic')
+      system("curl -s '#{value}' > 'profile_pic/#{@current_user}.jpg'")
       system("notify-send -i '#{Dir.pwd}/pics/#{value.split('/').last}' '#{@current_user}' '#{value}'")
     when :data
       new, old = @db.execute(["SELECT data FROM data",
@@ -92,7 +98,7 @@ class Igrm
           "#{it[:type]}#{it[:path]}:\s#{[it[:value]].flatten.reverse.join("\s->\s")}"
         end
         puts (["#{@current_user}:"] + diff).join("\n\t")
-        system("notify-send '#{@current_user}' '#{diff.join("\n")}'")
+        system("notify-send -i '#{get_user_pic(@current_user)}' '#{@current_user}' '#{diff.join("\n")}'")
       end
     else
       normal_notify(value)
