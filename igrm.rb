@@ -100,7 +100,7 @@ class Igrm
         normal_notify(value)
       else
         diff = json_diff(JSON.parse(new), JSON.parse(old)).map do |it|
-          "#{it[:type]}#{it[:path]}:\s#{[it[:value]].flatten.reverse.join("\s->\s")}"
+          ["#{it[:type]}#{it[:path]}:", [it[:value]].flatten.reverse.join("\s\u2192\s")]
         end
         puts (["#{@current_user}:"] + diff).join("\n\t")
         system("notify-send -i '#{get_user_pic(@current_user)}' '#{@current_user}' '#{diff.join("\n")}'")
