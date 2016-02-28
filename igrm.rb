@@ -78,7 +78,7 @@ class Igrm
   end
 
   def normal_notify(value)
-    puts "#{@current_user}:\s#{value[0 .. 80]}..."
+    puts "#{@current_user}:\s#{value}"[0, ENV['COLUMNS'].to_i]
     system("notify-send -i '#{get_user_pic(@current_user)}' '#{@current_user}' '#{value}'")
   end
 
