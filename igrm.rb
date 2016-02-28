@@ -41,7 +41,7 @@ class Igrm
 
   def start
     loop do
-      @users.each do |user|
+      @users.shuffle.each do |user|
         check(user)
         get_sleep
       end
@@ -82,7 +82,12 @@ class Igrm
     system("notify-send -i '#{get_user_pic(@current_user)}' '#{@current_user}' '#{value}'")
   end
 
+  def beep
+    system 'paplay /usr/share/sounds/freedesktop/stereo/bell.oga'
+  end
+
   def notify(value, table)
+    beep
     case table
     when :pictures
       puts "#{@current_user}:\s#{value}"
