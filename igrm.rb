@@ -27,8 +27,10 @@ class Igrm
                    'time    INTEGER NOT NULL)'].join("\n\t"))
     end
 
+    yaml = YAML.load(File.read(config))
     @db ||= SQLite3::Database.new(database_name)
-    @users = YAML.load(File.read(config))['users']
+    @users = yaml['users']
+    @sleep_range  = eval yaml['sleep'][/\d+\s*\.\.\.?\s*\d+/].to_s
     @data_ids     = @db.execute('SELECT id FROM data').flatten(1)
     @media_ids    = @db.execute('SELECT id FROM media').flatten(1)
     @pictures_ids = @db.execute('SELECT id FROM pictures').flatten(1)
@@ -64,11 +66,9 @@ class Igrm
     log(:pictures, picture) unless @pictures_ids.include? picture_id
   end
 
-  SLEEP_RANGE = 1..1
-
   def get_sleep
     col = ENV['COLUMNS'].to_i
-    time = rand(SLEEP_RANGE).to_f * 60 / @users.size / col
+    time = rand(@sleep_range).to_f * 60 / @users.size / col
     col.times { print('.'); sleep(time) }
     printf("\r%*s\r", col, '')
   end
