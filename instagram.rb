@@ -7,7 +7,7 @@ def get_photos(username)
   loop do
     json = JSON.parse(open(url).read)
     photos += json['items'].map{ |p| p['images']['standard_resolution']['url'] }
-    url = 'https://instagram.com/' + username + '/media/?max_id=' + json['items'].last['id']
+    url = 'https://instagram.com/' + username + '/media/?max_id=' + json['items'].last['id'].split('_').first
     break unless json['more_available']
   end
   return photos
@@ -31,7 +31,7 @@ def get_media(username)
     json = JSON.parse(open(url).read)
     medias.push json
     break if json['items'].empty?
-    url = "https://instagram.com/#{username}/media/?max_id=#{json['items'].last['id']}"
+    url = "https://instagram.com/#{username}/media/?max_id=#{json['items'].last['id'].split('_').first}"
     break unless json['more_available']
   end
   return JSON.fast_generate(medias)
