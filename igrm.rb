@@ -5,6 +5,7 @@ require 'yaml'
 require 'json'
 require './instagram.rb'
 require_relative 'json-diff.rb'
+require_relative 'mail2sms.rb'
 
 class Igrm
   def initialize(database_name, config = 'config.yaml')
@@ -27,10 +28,10 @@ class Igrm
                    'time    INTEGER NOT NULL)'].join("\n\t"))
     end
 
-    yaml = YAML.load(File.read(config))
+    @yaml = YAML.load_file(config)
     @db ||= SQLite3::Database.new(database_name)
-    @users = yaml['users']
-    @sleep_range  = eval yaml['sleep'][/\d+\s*\.\.\.?\s*\d+/].to_s
+    @users = @yaml['users']
+    @sleep_range  = eval @yaml['sleep'][/\d+\s*\.\.\.?\s*\d+/].to_s
     @data_ids     = @db.execute('SELECT id FROM data').flatten(1)
     @media_ids    = @db.execute('SELECT id FROM media').flatten(1)
     @pictures_ids = @db.execute('SELECT id FROM pictures').flatten(1)
@@ -77,9 +78,17 @@ class Igrm
     "#{Dir.pwd}/profile_pic/#{user}.jpg"
   end
 
+  def sms_notify(text)
+    mail2sms(@yaml['sms']['guser'],
+             @yaml['sms']['gpass'],
+             @yaml['sms']['phone'],
+             text) unless @yaml['sms'].nil?
+  end
+
   def normal_notify(value)
     puts "#{@current_user}:\s#{value}"[0, ENV['COLUMNS'].to_i]
     system("notify-send -i '#{get_user_pic(@current_user)}' '#{@current_user}' '#{value}'")
+    sms_notify("#{@current_user}:#{value}")
   end
 
   def beep
@@ -96,6 +105,7 @@ class Igrm
       system("wget -q -O 'pics/#{filename}' '#{value}'")
       system("curl -s '#{value}' > 'profile_pic/#{@current_user}.jpg'")
       system("notify-send -i '#{Dir.pwd}/pics/#{filename}' '#{@current_user}' '#{value}'")
+      sms_notify("#{@current_user}:#{value}")
     when :data
       new, old = @db.execute(["SELECT data FROM data",
                               "WHERE user = '#{@current_user}'",
@@ -109,6 +119,7 @@ class Igrm
         end
         puts (["#{@current_user}:"] + diff).join("\n\t")
         system("notify-send -i '#{get_user_pic(@current_user)}' '#{@current_user}' '#{diff.join("\n")}'")
+        sms_notify(diff.join("\s").gsub("\s\u2192\s", '/').prepend("#{@current_user}:"))
       end
     else
       normal_notify(value)
