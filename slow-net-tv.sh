@@ -28,12 +28,12 @@ nova()
 btv()
 {
   rtmpdump\
-    --rtmp     'rtmp://46.10.150.113:80/ios'\
-    --app      'ios'\
+    --rtmp     'rtmp://hls.btv.bg.sof.cmestatic.com:80/alpha'\
+    --app      'alpha'\
     --flashVer 'LNX 11,8,800,96'\
-    --swfVfy   'http://images.btv.bg/fplayer/flowplayer.commercial-3.2.5.swf'\
+    --swfVfy   'http://www.btv.bg/static/bg/shared/app/flowplayer/flowp.layer.commercial-3.2.18.swf'\
     --pageUrl  'http://www.btv.bg/live/'\
-    --playpath 'btvbglive'\
+    --playpath 'alpha'\
     --live --flv - --quiet | mpv --fs --mute=no --volume=100 --cache=10000\
     --cache-min=10\
     --title='BTV - На живо'\
